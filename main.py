@@ -10,7 +10,7 @@ import requests
 import yfinance as yf
 from ac import auto
 import pandas as pd
-
+from time import sleep
 
 team = 'w2mak'
 pw = 'E999AA9F'
@@ -67,14 +67,20 @@ def predict(model):
   auto("in.csv", f"{team}/{model}", "{pw}")
 
 if __name__ == "__main__":
-    import datetime
+    print('start')
+    i = 0 
+    while True:
+      
+      if i%15==0:
+        bank = getBank()
+        print(f'currently having {bank}')
+        latest_price = getPrice()
+        max_units = bank/latest_price  
+        executeTrade(type_='call', lots=int(buy_call_ratio*max_units))
+        executeTrade(type_='put', lots=int(max_units-int(buy_call_ratio*max_units)))
 
-    first_trade = True
-    while datetime.datetime.now() > datetime.datetime(year=2021, month=8, day=3, hour=21, minute=0):
-        if first_trade:
-            print('make first trade')
-            bank = make_first_trade()
-            first_trade = False
+      sleep(60)
+      i+=1
         
 
 
