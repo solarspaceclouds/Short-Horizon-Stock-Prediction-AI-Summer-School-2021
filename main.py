@@ -7,6 +7,8 @@
 
 # to maximize, determine best horizon and option type every minute
 import requests
+import yfinance as yf
+from ac import auto
 import pandas as pd
 
 
@@ -33,19 +35,22 @@ def getBank():
   return float(pd.Series(r.text).str.extract('<td>w2mak</td><td>\$(.+)</td>', expand=False).str.replace(',','').iloc[0])
 
 def getPrice():
-  pass
+  x = yf.Ticker("TWOU").history(start="2021-08-01", interval="1m")
+  return x["Open"].iloc[-1]
 
 def make_first_trade():
   test()
   latest_price = getPrice()
   max_units = bank/latest_price
-  executeTrade(type=type, lots=int(buy_call_ratio*max_units))
-  executeTrade(type='call' if type == 'put' else 'put', lots=max_units-int(buy_call_ratio*max_units))
+  
+  executeTrade(type='call', lots=int(buy_call_ratio*max_units))
+  executeTrade(type='put', lots=int(max_units-int(buy_call_ratio*max_units)))
 
 def predictType():
   pass
 
-def executeTrade(type, lots):
+def executeTrade(type_, lots):
+  buy(ttype=type_, horizon='15', lots=lots)
   pass
 
 def make_trade():
@@ -58,7 +63,8 @@ def make_trade():
   executeTrade(type=type, lots=int(buy_call_ratio*max_units))
   executeTrade(type='call' if type == 'put' else 'put', lots=max_units-int(buy_call_ratio*max_units))
 
-
+def predict(model):
+  auto("in.csv", f"{team}/{model}", "{pw}")
 
 if __name__ == "__main__":
     import datetime
