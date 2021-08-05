@@ -11,6 +11,7 @@ import yfinance as yf
 from ac import auto
 import pandas as pd
 from time import sleep
+import numpy as np
 
 team = 'w2mak'
 pw = 'E999AA9F'
@@ -54,15 +55,25 @@ def executeTrade(type_, lots):
   pass
 
 def make_trade():
-  global bank
   bank = getBank()
-
+  print(f'currently having {bank}')
   latest_price = getPrice()
-  max_units = bank/latest_price
-  type = predictType()
-  executeTrade(type=type, lots=int(buy_call_ratio*max_units))
-  executeTrade(type='call' if type == 'put' else 'put', lots=max_units-int(buy_call_ratio*max_units))
-
+  max_units = bank/latest_price  
+  if np.random.rand()>.5:
+    units = int((buy_call_ratio-0.05)*max_units)
+    print(f'submitting {units} call...')
+    executeTrade(type_='call', lots=units)
+    units = int(max_units-int((1-buy_call_ratio-0.05)*max_units))
+    print(f'submitting {units} put...')
+    executeTrade(type_='put', lots=units)
+  else:
+    units = int(max_units-int((1-buy_call_ratio-0.05)*max_units))
+    print(f'submitting {units} put...')
+    executeTrade(type_='put', lots=units)
+    units = int((buy_call_ratio-0.05)*max_units)
+    print(f'submitting {units} call...')
+    executeTrade(type_='call', lots=units)
+    
 def predict(model):
   auto("in.csv", f"{team}/{model}", "{pw}")
 
@@ -72,12 +83,7 @@ if __name__ == "__main__":
     while True:
       
       if i%15==0:
-        bank = getBank()
-        print(f'currently having {bank}')
-        latest_price = getPrice()
-        max_units = bank/latest_price  
-        executeTrade(type_='call', lots=int(buy_call_ratio*max_units))
-        executeTrade(type_='put', lots=int(max_units-int(buy_call_ratio*max_units)))
+        make_trade()
 
       sleep(60)
       i+=1
